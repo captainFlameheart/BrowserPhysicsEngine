@@ -26,7 +26,7 @@ function initialize() {
 	const circleBody = Body2D.default();
 	circleBody.angularLightness = 0.04;
 	circleBody.setPosition(new Vector2D(500.0, 400.0));
-	circleBody.setVelocity(new Vector2D(270.0, 0.0), deltaTime);
+	circleBody.setVelocity(new Vector2D(200.0, -100.0), deltaTime);
 	circleBody.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
 	//circleBody.setAngularVelocity(-0.5, deltaTime);
 	physicsEngine.bodies.push(circleBody);

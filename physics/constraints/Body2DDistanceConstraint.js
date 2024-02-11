@@ -28,12 +28,12 @@ class Body2DDistanceConstraint {
 
         const impulse = error / totalLightness;
 
-        this.body0.position.addScaled(direction, impulse * this.body0.lightness);
-        this.body0.angle += impulse * Vector2D.cross(displacement0, direction) 
-            * this.body0.angularLightness;
-        this.body1.position.addScaled(direction, -impulse * this.body1.lightness);
-        this.body1.angle += -impulse * Vector2D.cross(displacement1, direction) 
-            * this.body1.angularLightness;
+		this.body0.applyOffsetPositionImpulse(
+			displacement0, direction, impulse
+		);
+		this.body1.applyOffsetPositionImpulse(
+			displacement1, direction, -impulse
+		);
     }
 
 }
