@@ -1,18 +1,16 @@
 class Body2D {
     
     constructor(
-        previousPosition, previousAngle, position, angle, 
-        velocity, angularVelocity, acceleration, angularAcceleration, 
+        stepVelocityOrigin, angularStepVelocityOrigin, position, angle, 
+		stepAcceleration, angularStepAcceleration, 
         lightness, angularLightness
     ) {
-        this.previousPosition = previousPosition;
-        this.previousAngle = previousAngle;
+        this.stepVelocityOrigin = stepVelocityOrigin;
+        this.angularStepVelocityOrigin = angularStepVelocityOrigin;
         this.position = position;
         this.angle = angle;
-        this.velocity = velocity;
-        this.angularVelocity = angularVelocity;
-        this.acceleration = acceleration;
-        this.angularAcceleration = angularAcceleration;
+        this.stepAcceleration = stepAcceleration;
+        this.angularStepAcceleration = angularStepAcceleration;
         this.lightness = lightness;
         this.angularLightness = angularLightness;
     }
@@ -20,18 +18,17 @@ class Body2D {
     static default() {
         return new Body2D(
             Vector2D.zero(), 0.0, Vector2D.zero(), 0.0, 
-            Vector2D.zero(), 0.0, Vector2D.zero(), 0.0, 
-            1.0, 1.0
+            Vector2D.zero(), 0.0, 1.0, 1.0
         );
     }
 
     setPosition(position) {
-        this.previousPosition.set(position);
+        this.stepVelocityOrigin.set(position);
         this.position.set(position);
     }
 
     setAngle(angle) {
-        this.previousAngle = angle;
+        this.angularStepVelocityOrigin = angle;
         this.angle = angle;
     }
 
@@ -47,6 +44,58 @@ class Body2D {
         return this.displacementToGlobal(this.localToDisplacement(localPoint));
     }
 
+	getStepVelocity() {
+		return Vector2D.subtract(this.position, this.stepVelocityOrigin);
+	}
+
+	setStepVelocity(stepVelocity) {
+		this.stepVelocityOrigin.set(
+			Vector2D.subtract(this.position, stepVelocity)
+		);
+	}
+
+	getVelocity(deltaTime) {
+		return Vector2D.divide(this.getStepVelocity(), deltaTime);
+	}
+
+	setVelocity(velocity, deltaTime) {
+		this.stepVelocityOrigin.set(
+			Vector2D.subtractScaled(this.position, velocity, deltaTime)
+		);
+	}
+
+	getAcceleration(deltaTime) {
+		return Vector2D.divide(this.stepAcceleration, deltaTime);
+	}
+
+	setAcceleration(acceleration, deltaTime) {
+		this.stepAcceleration.set(Vector2D.multiply(acceleration, deltaTime));
+	}
+
+	getAngularStepVelocity() {
+		return this.angle - this.angularStepVelocityOrigin;
+	}
+
+	setAngularStepVelocity(deltaAngle) {
+		this.angularStepVelocityOrigin = this.angle - deltaAngle;
+	}
+
+	getAngularVelocity(deltaTime) {
+		return this.getAngularStepVelocity() / deltaTime;
+	}
+
+	setAngularVelocity(angularVelocity, deltaTime) {
+		this.setAngularStepVelocity(angularVelocity * deltaTime);
+	}
+
+	getAngularAcceleration(deltaTime) {
+		return this.angularStepAcceleration / deltaTime;
+	}
+
+	setAngularAcceleration(angularAcceleration, deltaTime) {
+		this.angularStepAcceleration = angularAcceleration * deltaTime;
+	}
+
     getGeneralizedLightness(displacement, direction) {
         const cross = Vector2D.cross(displacement, direction);
         return this.lightness + this.angularLightness * cross * cross;
@@ -58,21 +107,52 @@ class Body2D {
             * this.angularLightness;
 	}
 
-    step(deltaTime) {
-        this.previousPosition.set(this.position);
-        this.velocity.addScaled(this.acceleration, deltaTime);
-        this.position.addScaled(this.velocity, deltaTime);
+	applyOffsetPositionImpulseWithKeptVelocity(displacement, direction, impulse)
+	{
+		const deltaPosition = 
+			Vector2D.multiply(direction, impulse * this.lightness);
+		const deltaAngle = impulse * Vector2D.cross(displacement, direction) 
+			* this.angularLightness;
+		
+		this.position.add(deltaPosition);
+		this.stepVelocityOrigin.add(deltaPosition);
+		this.angle += deltaAngle;
+		this.angularStepVelocityOrigin += deltaAngle;
+	}
 
-        this.previousAngle = this.angle;
-        this.angularVelocity += this.angularAcceleration * deltaTime;
-        this.angle += this.angularVelocity * deltaTime;
+	getOffsetStepVelocity(displacement) {
+		return Vector2D.add(
+			this.getStepVelocity(), 
+			Vector2D.zCross(this.getAngularStepVelocity(), displacement)
+		);
+	}
+
+	applyOffsetStepImpulse(displacement, direction, impulse) {
+		this.setStepVelocity(Vector2D.add(this.getStepVelocity(), 
+			Vector2D.multiply(direction, impulse * this.lightness)));
+        this.setAngularStepVelocity(this.getAngularStepVelocity() + 
+			impulse * Vector2D.cross(displacement, direction) 
+			* this.angularLightness);
+	}
+
+    step(deltaTime) {
+		const stepVelocity = this.getStepVelocity();
+		this.stepVelocityOrigin.set(this.position);
+        stepVelocity.add(this.stepAcceleration);
+        this.position.add(stepVelocity);
+
+		let angularStepVelocity = this.getAngularStepVelocity();
+        this.angularStepVelocityOrigin = this.angle;
+        angularStepVelocity += this.angularStepAcceleration;
+        this.angle += angularStepVelocity;
     }
 
+	// TODO: Remove
     updateVelocity(deltaTime) {
-        this.velocity.set(Vector2D.divide(Vector2D.subtract(
-            this.position, this.previousPosition), deltaTime
+        /*this.velocity.set(Vector2D.divide(Vector2D.subtract(
+            this.position, this.stepVelocityOrigin), deltaTime
         ));
-        this.angularVelocity = (this.angle - this.previousAngle) / deltaTime;
+        this.angularVelocity = (this.angle - this.angularStepVelocityOrigin) / deltaTime;*/
     }
 
 }

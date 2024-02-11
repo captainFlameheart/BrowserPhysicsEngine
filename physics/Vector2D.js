@@ -34,6 +34,13 @@ class Vector2D {
         );
     }
 
+	static subtractScaled(vector0, vector1, scalar) {
+		return new Vector2D(
+			vector0.x - scalar * vector1.x, 
+			vector0.y - scalar * vector1.y
+		);
+	}
+
     static multiply(vector, scalar) {
         return new Vector2D(
             vector.x * scalar, 
@@ -79,10 +86,22 @@ class Vector2D {
         return vector0.x * vector1.y - vector1.x * vector0.y;
     }
 
+	static zCross(z, vector) {
+		return new Vector2D(
+			-vector.y * z, 
+			vector.x * z
+		);
+	}
+
     set(vector) {
         this.x = vector.x;
         this.y = vector.y;
     }
+
+	add(vector) {
+		this.x += vector.x;
+		this.y += vector.y;
+	}
 
     addScaled(vector, scalar) {
         this.x += vector.x * scalar;

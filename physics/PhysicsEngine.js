@@ -17,7 +17,7 @@ class PhysicsEngine {
                 body.step(subDeltaTime);
             }
             for (const constraint of this.constraints) {
-                constraint.solve();
+                constraint.solve(subDeltaTime);
             }
             for (const body of this.bodies) {
                 body.updateVelocity(subDeltaTime);

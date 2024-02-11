@@ -1,3 +1,7 @@
+const deltaTimeMilliseconds = 50;
+const deltaTimeSeconds = 0.001 * deltaTimeMilliseconds;
+const substeps = 10;
+const deltaTime = deltaTimeSeconds / substeps;
 let renderer;
 let physicsEngine;
 let collisionHandler;
@@ -9,39 +13,38 @@ function main() {
     renderer = canvas.getContext('2d');
 
     initialize();
-    const deltaTimeMilliseconds = 50;
-    const deltaTimeSeconds = 0.001 * deltaTimeMilliseconds;
     setInterval(() => tick(deltaTimeSeconds), deltaTimeMilliseconds);
 }
 
 function initialize() {
     physicsEngine = PhysicsEngine.default();
-    physicsEngine.subSteps = 10;
+    physicsEngine.subSteps = substeps;
 
 	collisionHandler = CollisionHandler.default();
 	physicsEngine.constraints.push(collisionHandler);
 
 	const circleBody = Body2D.default();
 	circleBody.angularLightness = 0.04;
-	circleBody.setPosition(new Vector2D(100.0, 100.0));
-	circleBody.velocity.x = 170.0;
-	circleBody.angularVelocity = -0.5;
+	circleBody.setPosition(new Vector2D(100.0, 90.0));
+	circleBody.setVelocity(new Vector2D(170.0, 0.0), deltaTime);
+	circleBody.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
+	//circleBody.setAngularVelocity(-0.5, deltaTime);
 	physicsEngine.bodies.push(circleBody);
 
-	const circle = new Circle(new Vector2D(0.0, 0.0), 20.0);
+	const circle = new Circle(new Vector2D(0.0, 0.0), 40.0);
 
 	const circleCollider = new CircleCollider(circleBody, circle);
 	collisionHandler.circleColliders.push(circleCollider);
 
 	const directedLineBody = Body2D.default();
 	directedLineBody.setPosition(new Vector2D(500.0, 500.0));
-	directedLineBody.lightness = 0.0;
-	directedLineBody.angularLightness = 0.0;
-	directedLineBody.velocity.y = -0;
-	directedLineBody.angularVelocity = 0.02;
+	directedLineBody.lightness = 0.01;
+	directedLineBody.angularLightness = 0.000001;
+	//directedLineBody.velocity.y = -0;
+	directedLineBody.setAngularVelocity(0.0, deltaTime);
 	physicsEngine.bodies.push(directedLineBody);
 
-	const directedLine = new DirectedLine(Vector2D.fromAngle(-0.6 * Math.PI), 100.0);
+	const directedLine = new DirectedLine(Vector2D.fromAngle(-0.55 * Math.PI), 100.0);
 
 	const directedLineCollider = new DirectedLineCollider(
 		directedLineBody, directedLine);
@@ -99,7 +102,7 @@ function initialize() {
 
     for (const body of physicsEngine.bodies) {
         if (body.lightness > 0.1) {
-            body.acceleration.set(new Vector2D(0.0, 100.0));
+            //body.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
 			//body.angularAcceleration = 0.1;
         }
     }
