@@ -25,8 +25,8 @@ function initialize() {
 
 	const circleBody = Body2D.default();
 	circleBody.angularLightness = 0.04;
-	circleBody.setPosition(new Vector2D(100.0, 90.0));
-	circleBody.setVelocity(new Vector2D(170.0, 0.0), deltaTime);
+	circleBody.setPosition(new Vector2D(500.0, 400.0));
+	circleBody.setVelocity(new Vector2D(270.0, 0.0), deltaTime);
 	circleBody.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
 	//circleBody.setAngularVelocity(-0.5, deltaTime);
 	physicsEngine.bodies.push(circleBody);
@@ -37,18 +37,85 @@ function initialize() {
 	collisionHandler.circleColliders.push(circleCollider);
 
 	const directedLineBody = Body2D.default();
-	directedLineBody.setPosition(new Vector2D(500.0, 500.0));
-	directedLineBody.lightness = 0.01;
-	directedLineBody.angularLightness = 0.000001;
+	directedLineBody.lightness = 0.5;//1.0;
+	directedLineBody.angularLightness = 0.0004;//0.001;
+	directedLineBody.setPosition(new Vector2D(500.0, 400.0));
+	directedLineBody.setVelocity(new Vector2D(0.0, 0.0), deltaTime);
+	directedLineBody.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
+
 	//directedLineBody.velocity.y = -0;
 	directedLineBody.setAngularVelocity(0.0, deltaTime);
 	physicsEngine.bodies.push(directedLineBody);
 
-	const directedLine = new DirectedLine(Vector2D.fromAngle(-0.55 * Math.PI), 100.0);
+	const rightDirectedLine = new DirectedLine(new Vector2D(-1.0, 0.0), -100.0);
+	const leftDirectedLine = new DirectedLine(new Vector2D(1.0, 0.0), -100.0);
+	const topDirectedLine = new DirectedLine(new Vector2D(0.0, 1.0), -100.0);
+	const bottomDirectedLine = new DirectedLine(new Vector2D(0.0, -1.0), -100.0);
 
-	const directedLineCollider = new DirectedLineCollider(
-		directedLineBody, directedLine);
-	collisionHandler.directedLineColliders.push(directedLineCollider);	
+	const rightDirectedLineCollider = new DirectedLineCollider(
+		directedLineBody, rightDirectedLine);
+	const leftDirectedLineCollider = new DirectedLineCollider(
+		directedLineBody, leftDirectedLine
+	);
+	const topDirectedLineCollider = new DirectedLineCollider(
+		directedLineBody, topDirectedLine);
+	const bottomDirectedLineCollider = new DirectedLineCollider(
+		directedLineBody, bottomDirectedLine
+	);
+	collisionHandler.directedLineColliders.push(rightDirectedLineCollider);	
+	collisionHandler.directedLineColliders.push(leftDirectedLineCollider);
+	collisionHandler.directedLineColliders.push(topDirectedLineCollider);	
+	collisionHandler.directedLineColliders.push(bottomDirectedLineCollider);
+
+	const ground = Body2D.default();
+	ground.lightness = 0.0;
+	ground.angularLightness = 0.0;
+	physicsEngine.bodies.push(ground);
+
+	const startPosition = new Vector2D(500.0, 50.0);
+    const count = 5;
+    const offset = new Vector2D(0.0, 55.0);
+    const anchorOffset = new Vector2D(0.0, 20.0);
+    const constraintDistance = 15.0;
+    
+    let topIndex = physicsEngine.bodies.length;
+    for (let i = 0; i < count; i++) {
+        const body = Body2D.default();
+		body.lightness = 4.0;
+        body.angularLightness = 0.02;
+        body.setPosition(Vector2D.addScaled(startPosition, offset, i));
+        body.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
+		physicsEngine.bodies.push(body);
+    }
+
+    const topBody = physicsEngine.bodies[topIndex];
+	topBody.lightness = 0.0;
+    topBody.setAcceleration(new Vector2D(0.0, 0.0), deltaTime);
+
+    const bottomBody = physicsEngine.bodies[physicsEngine.bodies.length - 1];
+	bottomBody.setVelocity(new Vector2D(10.0, 0.0), deltaTime);
+
+    for (let i = 0; i < count - 1; i++) {
+        constraint = new Body2DDistanceConstraint(
+            physicsEngine.bodies[topIndex + i], anchorOffset, 
+            physicsEngine.bodies[topIndex + i + 1], Vector2D.negate(anchorOffset),  
+            constraintDistance
+        );
+        physicsEngine.constraints.push(constraint);
+    }
+
+	const boxAttachemntPoint = new Vector2D(0.0, -100.0);
+	const ropeAttachementPoint = new Vector2D(0.0, 20.0);
+	const distance = Vector2D.subtract(
+		directedLineBody.displacementToGlobal(boxAttachemntPoint), 
+		bottomBody.displacementToGlobal(ropeAttachementPoint)
+	).getLength();
+	const distanceConstraint = new Body2DDistanceConstraint(
+		directedLineBody, boxAttachemntPoint, 
+		bottomBody, ropeAttachementPoint, 
+		distance
+	);
+	physicsEngine.constraints.push(distanceConstraint);
 
     //createRope(new Vector2D(400.0, 100.0), new Vector2D(-10.0, 10.0), offset.getLength(), 20);
     //createCloth(new Vector2D(10.0, 10.0), 5.0, 120, 80);
@@ -71,34 +138,7 @@ function initialize() {
     );
     physicsEngine.constraints.push(distanceConstraint);*/
 
-    /*const startPosition = new Vector2D(400.0, 50.0);
-    const count = 10;
-    const offset = new Vector2D(0.0, 50.0);
-    const anchorOffset = new Vector2D(0.0, 20.0);
-    const constraintDistance = 10.0;
     
-    let topIndex = physicsEngine.bodies.length;
-    for (let i = 0; i < count; i++) {
-        const body = Body2D.default();
-        body.setPosition(Vector2D.addScaled(startPosition, offset, i));
-        body.angularLightness = 0.02;
-        physicsEngine.bodies.push(body);
-    }
-
-    const topBody = physicsEngine.bodies[topIndex];
-    topBody.lightness = 0.0;
-    topBody.angularAcceleration = 0.0;
-
-    const bottomPointMass = physicsEngine.bodies[physicsEngine.bodies.length - 1];
-
-    for (let i = 0; i < count - 1; i++) {
-        constraint = new Body2DDistanceConstraint(
-            physicsEngine.bodies[topIndex + i], anchorOffset, 
-            physicsEngine.bodies[topIndex + i + 1], Vector2D.negate(anchorOffset),  
-            constraintDistance
-        );
-        physicsEngine.constraints.push(constraint);
-    }*/
 
     for (const body of physicsEngine.bodies) {
         if (body.lightness > 0.1) {
@@ -264,7 +304,7 @@ function drawCircleColliders() {
 
 function drawDirectedLineColliders() {
 	renderer.strokeStyle = 'white';
-	const length = 10000;
+	const length = 100;
 	for (const directedLineCollider of collisionHandler.directedLineColliders) {
 		renderer.save();
 		const body = directedLineCollider.body;

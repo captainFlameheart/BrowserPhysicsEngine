@@ -8,7 +8,7 @@ class Body2DDistanceConstraint {
         this.distance = distance;
     }
 
-    solve() {
+    solve(deltaTime) {
         const displacement0 = this.body0.localToDisplacement(this.localPoint0);
         const globalPoint0 = this.body0.displacementToGlobal(displacement0);
         const displacement1 = this.body1.localToDisplacement(this.localPoint1);
@@ -22,8 +22,8 @@ class Body2DDistanceConstraint {
         }
         direction.divide(currentDistance);
 
-        const lightness0 = this.body0.generalizedLightness(displacement0, direction);
-        const lightness1 = this.body1.generalizedLightness(displacement1, direction);
+        const lightness0 = this.body0.getGeneralizedLightness(displacement0, direction);
+        const lightness1 = this.body1.getGeneralizedLightness(displacement1, direction);
         const totalLightness = lightness0 + lightness1;
 
         const impulse = error / totalLightness;

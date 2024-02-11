@@ -138,7 +138,7 @@ class CollisionHandler {
 		const tangentStepVelocity = 
 			Vector2D.dot(contactVelocity, globalTangent);
 		const tangentStepSpeed = Math.abs(tangentStepVelocity);
-		const frictionCoefficient = 1.5;
+		const frictionCoefficient = 5.0;
 		const deltaTangentStepVelocity = Math.min(
 			frictionCoefficient * normalPositionImpulse, 
 			tangentStepSpeed
