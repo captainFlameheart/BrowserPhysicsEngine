@@ -1,3 +1,8 @@
+function changeAbstractPoint1DPosition(point, deltaPosition) {
+	const impulse = deltaPosition / point.getLightness();
+	point.applyPositionImpulse(impulse);
+}
+
 function solveContact(
 	body0, displacement0, 
 	body1, displacement1, 

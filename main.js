@@ -23,10 +23,26 @@ function initialize() {
 	collisionHandler = CollisionHandler.default();
 	physicsEngine.constraints.push(collisionHandler);
 
+	const pointMass0 = PointMass.default();
+	pointMass0.setPosition(new Vector2D(100.0, 100.0));
+	pointMass0.setStepVelocity(new Vector2D(0.0, 0.0));
+	physicsEngine.bodies.push(pointMass0);
+
+	const pointMass1 = PointMass.default();
+	pointMass1.setPosition(new Vector2D(100.0, 200.0));
+	pointMass1.setStepVelocity(new Vector2D(0.1, 0.0));
+	physicsEngine.bodies.push(pointMass1);
+
+	{
+		const distanceConstraint = DistanceConstraint.create1(
+			pointMass0, pointMass1, 100.0);
+		physicsEngine.constraints.push(distanceConstraint);
+	}
+
 	const circleBody = Body2D.default();
-	circleBody.angularLightness = 0.04;
+	circleBody.angularLightness = 0.1;
 	circleBody.setPosition(new Vector2D(500.0, 400.0));
-	circleBody.setVelocity(new Vector2D(200.0, -100.0), deltaTime);
+	circleBody.setVelocity(new Vector2D(200.0, -150.0), deltaTime);
 	circleBody.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
 	//circleBody.setAngularVelocity(-0.5, deltaTime);
 	physicsEngine.bodies.push(circleBody);
@@ -42,9 +58,10 @@ function initialize() {
 	directedLineBody.setPosition(new Vector2D(500.0, 400.0));
 	directedLineBody.setVelocity(new Vector2D(0.0, 0.0), deltaTime);
 	directedLineBody.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
+	directedLineBody.setAngularVelocity(0.0, deltaTime);
 
 	//directedLineBody.velocity.y = -0;
-	directedLineBody.setAngularVelocity(0.0, deltaTime);
+	//directedLineBody.setAngularVelocity(0.0, deltaTime);
 	physicsEngine.bodies.push(directedLineBody);
 
 	const rightDirectedLine = new DirectedLine(new Vector2D(-1.0, 0.0), -100.0);
@@ -73,46 +90,51 @@ function initialize() {
 	physicsEngine.bodies.push(ground);
 
 	const startPosition = new Vector2D(500.0, 50.0);
-    const count = 5;
-    const offset = new Vector2D(0.0, 55.0);
+    const count = 13;
+    const offset = new Vector2D(0.0, 20.0);
     const anchorOffset = new Vector2D(0.0, 20.0);
-    const constraintDistance = 15.0;
+    const constraintDistance = offset.getLength();
     
     let topIndex = physicsEngine.bodies.length;
     for (let i = 0; i < count; i++) {
-        const body = Body2D.default();
+        /*const body = Body2D.default();
 		body.lightness = 4.0;
         body.angularLightness = 0.02;
         body.setPosition(Vector2D.addScaled(startPosition, offset, i));
         body.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
-		physicsEngine.bodies.push(body);
+		*/
+		const pointMass = PointMass.default();
+		pointMass.lightness = 10.0;
+		pointMass.setPosition(Vector2D.addScaled(startPosition, offset, i));
+		pointMass.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
+		physicsEngine.bodies.push(pointMass);
     }
 
-    const topBody = physicsEngine.bodies[topIndex];
-	topBody.lightness = 0.0;
-    topBody.setAcceleration(new Vector2D(0.0, 0.0), deltaTime);
+    const topPointMass = physicsEngine.bodies[topIndex];
+	topPointMass.lightness = 0.0;
+    topPointMass.setAcceleration(new Vector2D(0.0, 0.0), deltaTime);
 
-    const bottomBody = physicsEngine.bodies[physicsEngine.bodies.length - 1];
+    const bottomPointMass = physicsEngine.bodies[physicsEngine.bodies.length - 1];
 	//bottomBody.setVelocity(new Vector2D(10.0, 0.0), deltaTime);
 
     for (let i = 0; i < count - 1; i++) {
-        constraint = Body2DDistanceConstraint.create0(
-            physicsEngine.bodies[topIndex + i], anchorOffset.copy(), 
-            physicsEngine.bodies[topIndex + i + 1], Vector2D.negate(anchorOffset),  
+        constraint = DistanceConstraint.create1(
+            physicsEngine.bodies[topIndex + i], /*anchorOffset.copy(),*/ 
+            physicsEngine.bodies[topIndex + i + 1], /*Vector2D.negate(anchorOffset),  */
             constraintDistance
         );
         physicsEngine.constraints.push(constraint);
     }
 
 	const boxAttachemntPoint = new Vector2D(0.0, -100.0);
-	const ropeAttachementPoint = new Vector2D(0.0, 20.0);
+	//const ropeAttachementPoint = new Vector2D(0.0, 20.0);
 	const distance = Vector2D.subtract(
 		directedLineBody.displacementToGlobal(boxAttachemntPoint), 
-		bottomBody.displacementToGlobal(ropeAttachementPoint)
+		bottomPointMass.position//displacementToGlobal(ropeAttachementPoint)
 	).getLength();
-	const distanceConstraint = Body2DDistanceConstraint.create0(
+	const distanceConstraint = DistanceConstraint.create2(
 		directedLineBody, boxAttachemntPoint, 
-		bottomBody, ropeAttachementPoint, 
+		bottomPointMass, /*ropeAttachementPoint,*/ 
 		distance
 	);
 	physicsEngine.constraints.push(distanceConstraint);
@@ -255,10 +277,10 @@ function drawBodies() {
     renderer.fillStyle = 'white';
     for (body of physicsEngine.bodies) {
         if (body instanceof PointMass) {
-            /*const position = body.position;
+            const position = body.position;
             renderer.beginPath();
             renderer.arc(position.x, position.y, 2.0, 0.0, 2.0 * Math.PI);
-            renderer.fill();*/
+            renderer.fill();
         } else if (body instanceof Body2D) {
             renderer.save();
             const position = body.position;
@@ -337,10 +359,15 @@ function drawDistanceConstraints() {
             renderer.moveTo(position0.x, position0.y);
             renderer.lineTo(position1.x, position1.y);
             renderer.stroke();
-        } else if (constraint instanceof Body2DDistanceConstraint) {
-            if (constraint.point instanceof PointGeneratorPair) {
-				const position0 = getPosition(constraint.point.pointGenerator0);
-				const position1 = getPosition(constraint.point.pointGenerator1);
+        } else if (constraint instanceof DistanceConstraint) {
+            if (
+				constraint.pointGenerator instanceof 
+				AbstractPoint2DGeneratorPair
+			) {	
+				const position0 = getPosition(
+					constraint.pointGenerator.generator0);
+				const position1 = getPosition(
+					constraint.pointGenerator.generator1);
 				renderer.beginPath();
 				renderer.moveTo(position0.x, position0.y);
 				renderer.lineTo(position1.x, position1.y);
@@ -350,8 +377,11 @@ function drawDistanceConstraints() {
     }
 
 function getPosition(pointGenerator) {
-	if (pointGenerator instanceof LocalPoint) {
+	if (pointGenerator instanceof Body2DLocalPoint) {
 		return pointGenerator.body.localToGlobal(pointGenerator.localPoint);
+	}
+	if (pointGenerator instanceof PointMass) {
+		return pointGenerator.position;
 	}
 	return null;
 }

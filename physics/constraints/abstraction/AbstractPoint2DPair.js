@@ -1,0 +1,44 @@
+class AbstractPoint2DPair {
+
+	constructor(point0, point1) {
+		this.point0 = point0;
+		this.point1 = point1;
+	}
+
+	getPosition() {
+		return Vector2D.subtract(
+			this.point0.getPosition(), 
+			this.point1.getPosition()
+		);
+	}
+
+	getStepVelocity() {
+		return Vector2D.subtract(
+			this.point0.getVelocity(), 
+			this.point1.getVelocity()
+		);
+	}
+
+	getLightnessAlong(direction) {
+		return (
+			this.point0.getLightnessAlong(direction) + 
+			this.point1.getLightnessAlong(direction)
+		);
+	}
+
+	applyPositionImpulse(direction, impulse) {
+		this.point0.applyPositionImpulse(direction, impulse);
+		this.point1.applyPositionImpulse(direction, -impulse);
+	}
+
+	applyPositionImpulseWithKeptVelocity(direction, impulse) {
+		this.point0.applyPositionImpulseWithKeptVelocity(direction, impulse);
+		this.point1.applyPositionImpulseWithKeptVelocity(direction, -impulse);
+	}
+
+	applyStepImpulse(direction, impulse) {
+		this.point0.applyStepImpulse(direction, impulse);
+		this.point1.applyStepImpulse(direction, -impulse);
+	}
+
+}

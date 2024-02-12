@@ -147,12 +147,4 @@ class Body2D {
         this.angle += angularStepVelocity;
     }
 
-	// TODO: Remove
-    updateVelocity(deltaTime) {
-        /*this.velocity.set(Vector2D.divide(Vector2D.subtract(
-            this.position, this.stepVelocityOrigin), deltaTime
-        ));
-        this.angularVelocity = (this.angle - this.angularStepVelocityOrigin) / deltaTime;*/
-    }
-
 }

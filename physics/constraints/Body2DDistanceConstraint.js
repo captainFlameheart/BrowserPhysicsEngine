@@ -1,48 +1,41 @@
-class Body2DDistanceConstraint {
+class DistanceConstraint {
 
-    constructor(point, distance) {
-		this.point = point;
+    constructor(pointGenerator, distance) {
+		this.pointGenerator = pointGenerator;
         this.distance = distance;
     }
 
 	static create0(body0, localPoint0, body1, localPoint1, distance) {
-		return new Body2DDistanceConstraint(new PointGeneratorPair(
-			new LocalPoint(body0, localPoint0), 
-			new LocalPoint(body1, localPoint1)
+		return DistanceConstraint.create1(
+			new Body2DLocalPoint(body0, localPoint0), 
+			new Body2DLocalPoint(body1, localPoint1), 
+			distance
+		);
+	}
+
+	static create1(pointGenerator0, pointGenerator1, distance) {
+		return new DistanceConstraint(new AbstractPoint2DGeneratorPair(
+			pointGenerator0, 
+			pointGenerator1
 		), distance);
 	}
 
-    solve(deltaTime) {
-        /*const displacement0 = this.body0.localToDisplacement(this.localPoint0);
-        const globalPoint0 = this.body0.displacementToGlobal(displacement0);
-        const displacement1 = this.body1.localToDisplacement(this.localPoint1);
-        const globalPoint1 = this.body1.displacementToGlobal(displacement1);*/
-		const currentPoint = this.point.getCurrentState();
-		const direction = currentPoint.getPosition();
-        //const direction = Vector2D.subtract(globalPoint1, globalPoint0);
-        const currentDistance = direction.getLength();
-        const error = currentDistance - this.distance;
-        if (error < 0.0) {
-            return;
-        }
-        direction.divide(currentDistance);
-
-		const projectedPoint = new ProjectedPoint(currentPoint, direction);
-		projectedPoint.changePosition(-error);
-
-		/*
-        const lightness0 = this.body0.getGeneralizedLightness(displacement0, direction);
-        const lightness1 = this.body1.getGeneralizedLightness(displacement1, direction);
-        const totalLightness = lightness0 + lightness1;
-
-        const impulse = error / totalLightness;
-
-		this.body0.applyOffsetPositionImpulse(
-			displacement0, direction, impulse
+	static create2(body0, localPoint0, pointGenerator1, distance) {
+		return this.create1(
+			new Body2DLocalPoint(body0, localPoint0), 
+			pointGenerator1, 
+			distance
 		);
-		this.body1.applyOffsetPositionImpulse(
-			displacement1, direction, -impulse
-		);*/
+	}
+
+    solve(deltaTime) {
+		const point = this.pointGenerator.generateAbstractPoint2D();
+		const currentDistance = AbstractPoint2DDistance.create(point);
+		const offsetDistance = new OffsetAbstractPoint1D(
+			currentDistance, this.distance);
+		const constraint = new AbstractPoint1DNegativeConstraint(
+			offsetDistance);
+		constraint.solve();
     }
 
 }
