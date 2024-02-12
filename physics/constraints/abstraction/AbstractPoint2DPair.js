@@ -14,8 +14,8 @@ class AbstractPoint2DPair {
 
 	getStepVelocity() {
 		return Vector2D.subtract(
-			this.point0.getVelocity(), 
-			this.point1.getVelocity()
+			this.point0.getStepVelocity(), 
+			this.point1.getStepVelocity()
 		);
 	}
 

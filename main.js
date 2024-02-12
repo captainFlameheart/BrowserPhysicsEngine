@@ -22,7 +22,41 @@ function initialize() {
 
 	collisionHandler = CollisionHandler.default();
 	physicsEngine.constraints.push(collisionHandler);
+	createBallInBox();
 
+	
+    //createRope(new Vector2D(400.0, 100.0), new Vector2D(-10.0, 10.0), offset.getLength(), 20);
+    //createCloth(new Vector2D(10.0, 10.0), 5.0, 120, 80);
+
+    /*const body0 = Body2D.default();
+    body0.setPosition(new Vector2D(100.0, 100.0));
+    body0.angularLightness = 0.04;
+    physicsEngine.bodies.push(body0);
+
+    const body1 = Body2D.default();
+    body1.setPosition(new Vector2D(100.0, 25.0));
+    body1.lightness = 0.0;
+    body1.angularLightness = 0.02;
+    physicsEngine.bodies.push(body1);
+
+    body = body1;
+
+    const distanceConstraint = new Body2DDistanceConstraint(
+        body0, new Vector2D(0.0, -20.0), body1, new Vector2D(0.0, 20.0), 35.0
+    );
+    physicsEngine.constraints.push(distanceConstraint);*/
+
+    
+
+    for (const body of physicsEngine.bodies) {
+        if (body.lightness > 0.1) {
+            //body.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
+			//body.angularAcceleration = 0.1;
+        }
+    }
+}
+
+function createBallInBox() {
 	const pointMass0 = PointMass.default();
 	pointMass0.setPosition(new Vector2D(100.0, 100.0));
 	pointMass0.setStepVelocity(new Vector2D(0.0, 0.0));
@@ -138,36 +172,6 @@ function initialize() {
 		distance
 	);
 	physicsEngine.constraints.push(distanceConstraint);
-
-    //createRope(new Vector2D(400.0, 100.0), new Vector2D(-10.0, 10.0), offset.getLength(), 20);
-    //createCloth(new Vector2D(10.0, 10.0), 5.0, 120, 80);
-
-    /*const body0 = Body2D.default();
-    body0.setPosition(new Vector2D(100.0, 100.0));
-    body0.angularLightness = 0.04;
-    physicsEngine.bodies.push(body0);
-
-    const body1 = Body2D.default();
-    body1.setPosition(new Vector2D(100.0, 25.0));
-    body1.lightness = 0.0;
-    body1.angularLightness = 0.02;
-    physicsEngine.bodies.push(body1);
-
-    body = body1;
-
-    const distanceConstraint = new Body2DDistanceConstraint(
-        body0, new Vector2D(0.0, -20.0), body1, new Vector2D(0.0, 20.0), 35.0
-    );
-    physicsEngine.constraints.push(distanceConstraint);*/
-
-    
-
-    for (const body of physicsEngine.bodies) {
-        if (body.lightness > 0.1) {
-            //body.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
-			//body.angularAcceleration = 0.1;
-        }
-    }
 }
 
 function createRope(startPosition, offset, constraintDistance, count) {

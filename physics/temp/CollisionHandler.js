@@ -90,7 +90,7 @@ class CollisionHandler {
 		const lineContactDisplacement = Vector2D.addScaled(
 			lineBodyToCircleContact, globalNormal, penetration);
 
-		solveContact(
+		solveContact1(
 			circleBody, circleContactDisplacement, 
 			lineBody, lineContactDisplacement, 
 			globalNormal, penetration, 

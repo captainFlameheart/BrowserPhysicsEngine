@@ -3,26 +3,37 @@ function changeAbstractPoint1DPosition(point, deltaPosition) {
 	point.applyPositionImpulse(impulse);
 }
 
-function solveContact(
+function changeAbstractPoint1DStepVelocity(point, deltaStepVelocity) {
+	const impulse = deltaStepVelocity / point.getLightness();
+	point.applyStepImpulse(impulse);
+}
+
+function solveContact1(
 	body0, displacement0, 
 	body1, displacement1, 
 	normal, penetration, 
 	restitutionCoefficient, restitutionThreshold, frictionCoefficient
 ) {
+	const contact = new AbstractPoint2DPair(
+		new Body2DDisplacedPoint(body0, displacement0), 
+		new Body2DDisplacedPoint(body1, displacement1)
+	);
+	solveContact0(contact, normal, penetration, 
+		restitutionCoefficient, restitutionThreshold, frictionCoefficient);
+}
+
+function solveContact0(
+	contact, normal, penetration, 
+	restitutionCoefficient, restitutionThreshold, frictionCoefficient
+) {
 	const tangent = Vector2D.perpendicularClockwise(normal);
 
-	const contact = new PointPair(
-		new DisplacedPoint(body0, displacement0), 
-		new DisplacedPoint(body1, displacement1)
-	);
-	const normalContact = new ProjectedPoint(contact, normal);
+	const normalContact = new AbstractPoint2DProjection(contact, normal);// new ProjectedPoint(contact, normal);
 	const normalLightness = normalContact.getLightness();
 	const normalPositionImpulse = penetration / normalLightness;
-
 	const contactStepVelocity = contact.getStepVelocity();
+	
 	const normalStepVelocity = Vector2D.dot(contactStepVelocity, normal);
-	//const restitutionCoefficient = 0.5;
-	//const restitutionThreshold = 0.2;
 	let deltaNormalStepVelocity;
 	if (normalStepVelocity < -restitutionThreshold) {
 		deltaNormalStepVelocity = -(1.0 + restitutionCoefficient) 
@@ -40,13 +51,12 @@ function solveContact(
 	const tangentStepVelocity = 
 		Vector2D.dot(contactStepVelocity, tangent);
 	const tangentStepSpeed = Math.abs(tangentStepVelocity);
-	//const frictionCoefficient = 5.0;
 	const deltaTangentStepVelocity = Math.min(
 		frictionCoefficient * normalPositionImpulse, 
 		tangentStepSpeed
 	) * Math.sign(-tangentStepVelocity);
-	const tangentContact = new ProjectedPoint(contact, tangent);
-	tangentContact.changeStepVelocity(deltaTangentStepVelocity);
+	const tangentContact = new AbstractPoint2DProjection(contact, tangent);//new ProjectedPoint(contact, tangent);
+	changeAbstractPoint1DStepVelocity(tangentContact, deltaTangentStepVelocity);//tangentContact.changeStepVelocity(deltaTangentStepVelocity);
 
 	normalContact.applyPositionImpulseWithKeptVelocity(
 		normalPositionImpulse);
