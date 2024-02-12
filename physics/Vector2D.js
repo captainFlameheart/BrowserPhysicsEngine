@@ -93,6 +93,13 @@ class Vector2D {
 		);
 	}
 
+	copy() {
+		return new Vector2D(
+			this.x, 
+			this.y
+		);
+	}
+
     set(vector) {
         this.x = vector.x;
         this.y = vector.y;

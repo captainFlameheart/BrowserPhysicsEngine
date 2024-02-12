@@ -93,11 +93,11 @@ function initialize() {
     topBody.setAcceleration(new Vector2D(0.0, 0.0), deltaTime);
 
     const bottomBody = physicsEngine.bodies[physicsEngine.bodies.length - 1];
-	bottomBody.setVelocity(new Vector2D(10.0, 0.0), deltaTime);
+	//bottomBody.setVelocity(new Vector2D(10.0, 0.0), deltaTime);
 
     for (let i = 0; i < count - 1; i++) {
-        constraint = new Body2DDistanceConstraint(
-            physicsEngine.bodies[topIndex + i], anchorOffset, 
+        constraint = Body2DDistanceConstraint.create0(
+            physicsEngine.bodies[topIndex + i], anchorOffset.copy(), 
             physicsEngine.bodies[topIndex + i + 1], Vector2D.negate(anchorOffset),  
             constraintDistance
         );
@@ -110,7 +110,7 @@ function initialize() {
 		directedLineBody.displacementToGlobal(boxAttachemntPoint), 
 		bottomBody.displacementToGlobal(ropeAttachementPoint)
 	).getLength();
-	const distanceConstraint = new Body2DDistanceConstraint(
+	const distanceConstraint = Body2DDistanceConstraint.create0(
 		directedLineBody, boxAttachemntPoint, 
 		bottomBody, ropeAttachementPoint, 
 		distance
@@ -338,12 +338,22 @@ function drawDistanceConstraints() {
             renderer.lineTo(position1.x, position1.y);
             renderer.stroke();
         } else if (constraint instanceof Body2DDistanceConstraint) {
-            const position0 = constraint.body0.localToGlobal(constraint.localPoint0);
-            const position1 = constraint.body1.localToGlobal(constraint.localPoint1);
-            renderer.beginPath();
-            renderer.moveTo(position0.x, position0.y);
-            renderer.lineTo(position1.x, position1.y);
-            renderer.stroke();
+            if (constraint.point instanceof PointGeneratorPair) {
+				const position0 = getPosition(constraint.point.pointGenerator0);
+				const position1 = getPosition(constraint.point.pointGenerator1);
+				renderer.beginPath();
+				renderer.moveTo(position0.x, position0.y);
+				renderer.lineTo(position1.x, position1.y);
+				renderer.stroke();
+			}
         }
     }
+
+function getPosition(pointGenerator) {
+	if (pointGenerator instanceof LocalPoint) {
+		return pointGenerator.body.localToGlobal(pointGenerator.localPoint);
+	}
+	return null;
+}
+
 }

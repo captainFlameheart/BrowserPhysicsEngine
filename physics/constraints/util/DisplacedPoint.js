@@ -5,6 +5,10 @@ class DisplacedPoint {
 		this.displacement = displacement;
 	}
 
+	getPosition() {
+		return this.body.displacementToGlobal(this.displacement);
+	}
+
 	getStepVelocity() {
 		return this.body.getOffsetStepVelocity(this.displacement);
 	}

@@ -5,6 +5,13 @@ class PointPair {
 		this.point1 = point1;
 	}
 
+	getPosition() {
+		return Vector2D.subtract(
+			this.point0.getPosition(), 
+			this.point1.getPosition()
+		);
+	}
+
 	getStepVelocity() {
 		return Vector2D.subtract(
 			this.point0.getStepVelocity(), 
