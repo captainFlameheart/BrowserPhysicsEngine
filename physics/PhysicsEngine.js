@@ -11,6 +11,7 @@ class PhysicsEngine {
     }
 
     tick(deltaTime) {
+		console.log(this.subSteps);
         const subDeltaTime = deltaTime / this.subSteps;
         for (let i = 0; i < this.subSteps; i++) {
             for (const body of this.bodies) {

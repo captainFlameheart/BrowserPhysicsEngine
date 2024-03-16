@@ -16,6 +16,15 @@ class CollisionHandler {
 					circleCollider, directedLineCollider, deltaTime);
 			}
 		}
+
+		for (let i = 0; i < this.circleColliders.length - 1; i++) {
+			const circleCollider0 = this.circleColliders[i];
+			for (let j = i + 1; j < this.circleColliders.length; j++) {
+				const circleCollider1 = this.circleColliders[j];
+				this.solveCircleVsCircleContact(
+					circleCollider0, circleCollider1);
+			}
+		}
 	}
 
 	solveCircleVsDirectedLineCollision(circleCollider, directedLineCollider, deltaTime) {
@@ -94,7 +103,37 @@ class CollisionHandler {
 			circleBody, circleContactDisplacement, 
 			lineBody, lineContactDisplacement, 
 			globalNormal, penetration, 
-			0.5, 0.2, 5.0
+			0.5 * 0, 0.2 * 0, 5.0 * 0
+		);
+	}
+
+	solveCircleVsCircleContact(circleCollider0, circleCollider1) {
+		const body0 = circleCollider0.body;
+		const circle0 = circleCollider0.circle;
+		const body1 = circleCollider1.body;
+		const circle1 = circleCollider1.circle;
+
+		const circleDisplacement0 = body0.localToDisplacement(circle0.position);
+		const circlePosition0 = body0.displacementToGlobal(circleDisplacement0);
+		const circleDisplacement1 = body1.localToDisplacement(circle1.position);
+		const circlePosition1 = body1.displacementToGlobal(circleDisplacement1);
+
+		const normal = Vector2D.subtract(circlePosition0, circlePosition1);
+		const distance = normal.getLength();
+		normal.divide(distance);
+		const penetration = circle0.radius + circle1.radius - distance;
+		if (penetration < 0.0) {
+			return;
+		}
+		const contactDisplacement0 = Vector2D.addScaled(
+			circle0.position, normal, -circle0.radius);
+		const contactDisplacement1 = Vector2D.addScaled(
+			circle1.position, normal, circle1.radius);
+		solveContact1(
+			body0, contactDisplacement0, 
+			body1, contactDisplacement1, 
+			normal, penetration, 
+			0.5 * 0, 0.2 * 0, 10.0 * 0
 		);
 	}
 

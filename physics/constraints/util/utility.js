@@ -52,7 +52,7 @@ function solveContact0(
 		Vector2D.dot(contactStepVelocity, tangent);
 	const tangentStepSpeed = Math.abs(tangentStepVelocity);
 	const deltaTangentStepVelocity = Math.min(
-		frictionCoefficient * normalPositionImpulse, 
+		frictionCoefficient * normalStepImpulse/*normalPositionImpulse*/, 
 		tangentStepSpeed
 	) * Math.sign(-tangentStepVelocity);
 	const tangentContact = new AbstractPoint2DProjection(contact, tangent);//new ProjectedPoint(contact, tangent);

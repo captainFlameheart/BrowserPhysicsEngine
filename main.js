@@ -1,6 +1,6 @@
 const deltaTimeMilliseconds = 50;
 const deltaTimeSeconds = 0.001 * deltaTimeMilliseconds;
-const substeps = 10;
+const substeps = 100;
 const deltaTime = deltaTimeSeconds / substeps;
 let renderer;
 let physicsEngine;
@@ -22,9 +22,55 @@ function initialize() {
 
 	collisionHandler = CollisionHandler.default();
 	physicsEngine.constraints.push(collisionHandler);
-	createBallInBox();
-
 	
+	const ground = Body2D.default();
+	ground.lightness = 0.0;
+	ground.angularLightness = 0.0;
+	physicsEngine.bodies.push(ground);
+
+	const floorLine = new DirectedLine(new Vector2D(0.0, -1.0), -500.0);
+	const floorCollider = new DirectedLineCollider(ground, floorLine);
+	collisionHandler.directedLineColliders.push(floorCollider);
+
+	const leftWallLine = new DirectedLine(new Vector2D(1.0, 0.0), 100.0);
+	const leftWallCollider = new DirectedLineCollider(ground, leftWallLine);
+	collisionHandler.directedLineColliders.push(leftWallCollider);
+
+	const rightWallLine = new DirectedLine(new Vector2D(-1.0, 0.0), -700.0);
+	const rightWallCollider = new DirectedLineCollider(ground, rightWallLine);
+	collisionHandler.directedLineColliders.push(rightWallCollider);
+	
+	const radius = 5.0;
+	const count = 200;
+	for (let i = 0; i < count; i++) {
+		const circleBody = Body2D.default();
+		circleBody.angularLightness = 0.04;
+		circleBody.setPosition(new Vector2D(
+			100.0 + Math.random() * 500.0, 100.0 + Math.random() * 400.0));
+		circleBody.setVelocity(new Vector2D(0.0, 0.0), deltaTime);
+		circleBody.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
+		physicsEngine.bodies.push(circleBody);
+
+		const circle = new Circle(new Vector2D(0.0, 0.0), radius);
+		const circleCollider = new CircleCollider(circleBody, circle);
+		collisionHandler.circleColliders.push(circleCollider);
+	}
+	
+	const firstIndex = physicsEngine.bodies.length - count;
+	const lastIndex = physicsEngine.bodies.length - 1;
+	const firstBody = physicsEngine.bodies[firstIndex];
+	const lastBody = physicsEngine.bodies[lastIndex];
+
+	firstBody.setVelocity(new Vector2D(-200.0, 0.0), deltaTime);
+	//lastBody.setVelocity(new Vector2D(200.0, 0.0), deltaTime);
+
+	/*const radius = 20.0;
+	const count = 10;
+	const pendelumLength = 100.0;
+	const topLeft = new Vector2D(200.0, 300.0);
+	createNewtonsCradle(radius, count, pendelumLength, topLeft);*/
+
+	//createBallInBox();
     //createRope(new Vector2D(400.0, 100.0), new Vector2D(-10.0, 10.0), offset.getLength(), 20);
     //createCloth(new Vector2D(10.0, 10.0), 5.0, 120, 80);
 
@@ -54,6 +100,48 @@ function initialize() {
 			//body.angularAcceleration = 0.1;
         }
     }
+}
+
+function createNewtonsCradle(radius, count, pendelumLength, topLeft) {
+	const ground = Body2D.default();
+	ground.lightness = 0.0;
+	ground.angularLightness = 0.0;
+	physicsEngine.bodies.push(ground);
+	
+	const floorLine = new DirectedLine(new Vector2D(0.0, -1.0), -500.0);
+	const floorCollider = new DirectedLineCollider(ground, floorLine);
+	collisionHandler.directedLineColliders.push(floorCollider);
+
+	for (let i = 0; i < count; i++) {
+		const circleBody = Body2D.default();
+		circleBody.angularLightness = 0.08;
+		const x = topLeft.x + i * 2.0 * radius;
+		const y = topLeft.y;
+		circleBody.setPosition(
+			new Vector2D(x, y + pendelumLength + radius)
+		);
+		circleBody.setVelocity(new Vector2D(0.0, 0.0), deltaTime);
+		circleBody.setAcceleration(new Vector2D(0.0, 1.0), deltaTime);
+		physicsEngine.bodies.push(circleBody);
+
+		const circle = new Circle(new Vector2D(0.0, 0.0), radius);
+		const circleCollider = new CircleCollider(circleBody, circle);
+		collisionHandler.circleColliders.push(circleCollider);
+
+		const distanceConstraint = DistanceConstraint.create0(
+			circleBody, new Vector2D(0.0, -radius), 
+			ground, new Vector2D(x, y), pendelumLength
+		);
+		physicsEngine.constraints.push(distanceConstraint);
+	}
+	
+	const firstIndex = physicsEngine.bodies.length - count;
+	const lastIndex = physicsEngine.bodies.length - 1;
+	const firstBody = physicsEngine.bodies[firstIndex];
+	const lastBody = physicsEngine.bodies[lastIndex];
+
+	firstBody.setVelocity(new Vector2D(-200.0, 0.0), deltaTime);
+	//lastBody.setVelocity(new Vector2D(200.0, 0.0), deltaTime);
 }
 
 function createBallInBox() {
@@ -272,7 +360,7 @@ function draw() {
     renderer.clearRect(0, 0, renderer.canvas.width, renderer.canvas.height);
     //renderer.fillStyle = "black";
     //renderer.fillRect(0, 0, renderer.canvas.width, renderer.canvas.height);
-    drawBodies();
+    //drawBodies();
 	drawColliders();
     drawDistanceConstraints();
 }
@@ -330,7 +418,7 @@ function drawCircleColliders() {
 
 function drawDirectedLineColliders() {
 	renderer.strokeStyle = 'white';
-	const length = 100;
+	const length = 10000;
 	for (const directedLineCollider of collisionHandler.directedLineColliders) {
 		renderer.save();
 		const body = directedLineCollider.body;
